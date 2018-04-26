@@ -1,0 +1,6 @@
+<li><a href="/api/staging/?item=ec2">staging.ec2</a></li>
+<li><a href="/api/staging/?item=s3">staging.S3</a></li>
+<li><a href="/api/staging/?item=ebs">staging.Elastic_Beanstalk</a></li>
+{% for id, name in list.items %}
+<li><a href="/api/staging/?item=route53&id={{ id }}">staging.Route53_{{ name }}</a></li>
+{% endfor %}
