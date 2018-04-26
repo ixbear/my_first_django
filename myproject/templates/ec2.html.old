@@ -1,6 +1,0 @@
-<h2>request.build_absolute_uri: {{ absolute_uri }}</h2>
-<h2>request.get_full_path: {{ full_path }}</h2>
-
-<h2>request.get_full_path: {{ full_path }}</h2>
-<h2>request.env: {{ data_env }}</h2>
-<h2>request.item: {{ data_item }}</h2>
