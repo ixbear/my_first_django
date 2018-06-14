@@ -1,6 +1,7 @@
 <li><a href="/api/production/?item=ec2">production.ec2</a></li>
 <li><a href="/api/production/?item=s3">production.S3</a></li>
 <li><a href="/api/production/?item=ebs">Production.Elastic_Beanstalk</a></li>
+<li><a href="/api/production/?item=iam">Production.iam_users</a></li>
 {% for id, name in list.items %}
 <li><a href="/api/production/?item=route53&id={{ id }}">production.Route53_{{ name }}</a></li>
 {% endfor %}

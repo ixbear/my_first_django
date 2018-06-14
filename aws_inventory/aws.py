@@ -10,7 +10,7 @@ from export_ec2 import GetInstanceName,GetInstance,ExportInstance2Mysql
 from export_route53 import ExportZone2Mysql
 from export_s3 import ExportS3_2_Mysql
 from export_elasticbeanstalk import Export_Elastic_Beanstalk_2_Mysql
-
+from export_iam import export_iam_users_2_Mysql
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Export AWS instance to a MYSQL.')
@@ -49,3 +49,7 @@ if __name__ == '__main__':
 
     ExportS3_2_Mysql(aws_tag, mysql_server, mysql_port, mysql_user, mysql_passwd, mysql_db)
     Export_Elastic_Beanstalk_2_Mysql(aws_tag, mysql_server, mysql_port, mysql_user, mysql_passwd, mysql_db)
+
+    print("Export IAM to Mysql...")
+    export_iam_users_2_Mysql(aws_tag, mysql_server, mysql_port, mysql_user, mysql_passwd, mysql_db)
+    print("Done.")
