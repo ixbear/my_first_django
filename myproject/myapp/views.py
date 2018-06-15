@@ -465,3 +465,22 @@ def get_staging_data(request):
         return render(request, 'table.html', content1)
     else:
         raise Http404()
+
+
+def get_domain_info(request):
+    content1 = {}
+    content1['env'] = 'domain'
+    cursor = connection.cursor()
+
+    content1['thead'] = []
+    table_name = 'domain_info'    #table_name
+    for i in connection.introspection.get_table_description(cursor, table_name):
+        content1['thead'].append(i.name.encode('utf8'))    #.encode('utf8')是去掉列表每个元素前的u
+    cursor.execute("select * from `" + table_name + "`")
+    content1['tbody'] = []
+    for each_entry in cursor.fetchall():
+        dict = {}
+        for each_value in each_entry:
+            dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
+        content1['tbody'].append(dict)
+    return render(request, 'table.html', content1)

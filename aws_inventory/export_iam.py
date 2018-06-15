@@ -12,6 +12,7 @@ import datetime
 import warnings
 import time,datetime
 
+#refer to: https://github.com/jchrisfarris/aws-account-automation/blob/master/lambda/ExpireUsers.py
 def get_credential_report(iam_client):
     resp1 = iam_client.generate_credential_report()
     if resp1['State'] == 'COMPLETE' :
@@ -32,60 +33,20 @@ def get_credential_report(iam_client):
         return get_credential_report(iam_client)
 
 def get_password_age(credential_report,user):
+    password_age = -9999
     for row in credential_report:
+        if row['user'] == user and row['password_enabled'] == 'true':
+            password_last_changed = parser.parse(row['password_last_changed']).strftime("%Y-%m-%d %H:%M:%S")
+            password_last_day = time.mktime(datetime.datetime.strptime(password_last_changed, "%Y-%m-%d %H:%M:%S").timetuple())
+            current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())                       
+            current_day = time.mktime(datetime.datetime.strptime(current_date, "%Y-%m-%d %H:%M:%S").timetuple())
 
-        if row['user'] == user:
-            if row['password_enabled'] == 'true':
-                password_last_changed = parser.parse(row['password_last_changed']).strftime("%Y-%m-%d %H:%M:%S")
-                password_last_day = time.mktime(datetime.datetime.strptime(password_last_changed, "%Y-%m-%d %H:%M:%S").timetuple())
-                current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())                       
-                current_day = time.mktime(datetime.datetime.strptime(current_date, "%Y-%m-%d %H:%M:%S").timetuple())
+            active_days = (current_day - password_last_day)/60/60/24
+            password_age = int(active_days)
+        else:
+            password_age = -1
+    return password_age  
 
-                active_days = (current_day - password_last_day)/60/60/24
-                password_age = int(active_days)
-            else:
-                password_age = -1
-    return password_age
-
-#def get_last_activity(credential_report,user):
-
-#    current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())                       
-#    current_day = time.mktime(datetime.datetime.strptime(current_date, "%Y-%m-%d %H:%M:%S").timetuple())
-
-#    for row in credential_report:
-
-#        if row['user'] == user:
-#            if row['password_enabled'] == 'true' and row['password_last_used'] != 'no_information':
-#                password_last_changed = parser.parse(row['password_last_used']).strftime("%Y-%m-%d %H:%M:%S")
-#                password_last_day = time.mktime(datetime.datetime.strptime(password_last_changed, "%Y-%m-%d %H:%M:%S").timetuple())
-
-#                active_days = (current_day - password_last_day)/60/60/24
-#                last_activity = str(int(active_days))
-#            elif row['password_enabled'] == 'true' and row['password_last_used'] == 'no_information':
-#                last_activity = 'None'
-#            elif row['password_enabled'] == 'false' and row['access_key_1_active'] == 'true' and row['access_key_2_active'] == 'true':
-#                last_activity_lst = []
-#                last_activity_1_time = parser.parse(row['access_key_1_last_used_date']).strftime("%Y-%m-%d %H:%M:%S")
-#                last_activity_1_date = time.mktime(datetime.datetime.strptime(last_activity_1_time, "%Y-%m-%d %H:%M:%S").timetuple()) 
-#                active_days_1 = (current_day - last_activity_1_date)/60/60/24
-#                last_activity_lst.append(active_days_1)
-#                last_activity_2_time = parser.parse(row['access_key_1_last_used_date']).strftime("%Y-%m-%d %H:%M:%S")
-#                last_activity_2_date = time.mktime(datetime.datetime.strptime(last_activity_2_time, "%Y-%m-%d %H:%M:%S").timetuple()) 
-#                active_days_2 = (current_day - last_activity_2_date)/60/60/24
-#                last_activity_lst.append(active_days_2)
-#                last_activity = str(min(last_activity_lst))
-
-#            elif row['password_enabled'] == 'false' and row['access_key_1_active'] == 'true' and row['access_key_2_active'] == 'false':
-#                last_activity_time = parser.parse(row['access_key_1_last_used_date']).strftime("%Y-%m-%d %H:%M:%S")
-#                last_activity_date = time.mktime(datetime.datetime.strptime(last_activity_time, "%Y-%m-%d %H:%M:%S").timetuple()) 
-#                active_days = (current_day - last_activity_date)/60/60/24    
-#                last_activity = str(int(active_days))
-#            else:
-#                last_activity = 'None'
-
-#    return last_activity
-
-    
 
 def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
 
@@ -96,39 +57,36 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
     response1 = client1.list_users()
     #print response1
     credential_report = get_credential_report(client1)
+    #print credential_report
 
     #create a table in mysql
     try:
-        cursor = conn.cursor()
-        # with conn.cursor() as cursor:
 
-        table_name = aws_tag + '_iam_users'
-        CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(50), \
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+
+            cursor = conn.cursor()
+
+            table_name = aws_tag + '_iam_users'
+            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(50), \
                                                                     Groupname varchar(256), \
                                                                     Access_key_age int(5), \
                                                                     Password_age int(100), \
                                                                     Last_activity int(5), \
                                                                     mfa varchar(100), \
                                                                     MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
-        ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
+            ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
 
-        print("Checking and Clearing table: " + table_name)
-        cursor.execute(CheckTable)
-        cursor.execute(ClearTable)
+            print("Checking and Clearing table: " + table_name)
+            cursor.execute(CheckTable)
+            cursor.execute(ClearTable)
 
-        current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())                       
-        current_day = time.mktime(datetime.datetime.strptime(current_date, "%Y-%m-%d %H:%M:%S").timetuple())
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore")
-
-
+            current_date = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())                       
+            current_day = time.mktime(datetime.datetime.strptime(current_date, "%Y-%m-%d %H:%M:%S").timetuple())
 
             for user in response1['Users']:
 
                 try:
-
-
                     activity_date_list = []
 
                     #get access_key_age, refer to https://stackoverflow.com/questions/45156934/getting-access-key-age-aws-boto3
@@ -170,8 +128,6 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
 
                     password_age = get_password_age(credential_report,user['UserName'])
 
-                    
-
                     #如果有密码,获得最后一次使用密码(距今)的日期
                     if user.has_key('PasswordLastUsed'):
                         password_date = user['PasswordLastUsed'].strftime("%Y-%m-%d %H:%M:%S")
@@ -191,9 +147,6 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
                     else:
                         groups = 'None'
 
-                    #last_activity = get_last_activity(credential_report,user['UserName'])
-                    #print(user['UserName'] + '-----' + str(activity_list))
-
                     if activity_date_list:
                         last_activity = min(activity_date_list)
                     else:
@@ -206,9 +159,7 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
                         mfa = 'Hardware'
                     else:
                         mfa = 'Not_enabled'
-                    
-                    #
-                    # 
+
                     # print(user['UserName'] + '-----' + access_key_age + '-----' + password_age + '-----' + last_activity + '-----' + groups + '------' + mfa)
 
                     InsertData = "INSERT INTO `" + table_name + "` (Name, Groupname, Access_key_age, Password_age, Last_activity, mfa, MysqlRecordTime) VALUES (%s, %s, %s, %s, %s, %s, %s);"
@@ -217,6 +168,6 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
                 except Exception as error:
                     print error
                     exit(1)
-                conn.commit()
+            conn.commit()
     finally:
         conn.close()

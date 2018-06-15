@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^api/development/$', views.get_development_data),
     url(r'^api/legacy/$', views.get_legacy_data),
     url(r'^api/staging/$', views.get_staging_data),
+    url(r'^api/domain/$', views.get_domain_info),
 ]

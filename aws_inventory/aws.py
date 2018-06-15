@@ -11,6 +11,7 @@ from export_route53 import ExportZone2Mysql
 from export_s3 import ExportS3_2_Mysql
 from export_elasticbeanstalk import Export_Elastic_Beanstalk_2_Mysql
 from export_iam import export_iam_users_2_Mysql
+from export_domain import export_domain_2_Mysql
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Export AWS instance to a MYSQL.')
@@ -52,4 +53,9 @@ if __name__ == '__main__':
 
     print("Export IAM to Mysql...")
     export_iam_users_2_Mysql(aws_tag, mysql_server, mysql_port, mysql_user, mysql_passwd, mysql_db)
+    print("Done.")
+
+    print("Export Domain information")
+    domain_list = ['grindr.com', 'grindr.io', 'grindrguy.net', 'grindrguy.com', 'grindrstore.com', 'intomore.com', 'grindr.pe', 'grindr.com.br', 'grindr.com.ve','grindr.pt', 'xtraapp.com']
+    export_domain_2_Mysql(domain_list, mysql_server, mysql_port, mysql_user, mysql_passwd, mysql_db)
     print("Done.")
