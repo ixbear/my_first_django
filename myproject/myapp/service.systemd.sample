@@ -1,0 +1,15 @@
+[Unit]
+Description=AWS_Inventory by Django
+Before=network-online.target
+Wants=network-online.target
+
+
+[Service]
+  Type=simple
+  ExecStart=/usr/bin/python /opt/my_first_django/myproject/manage.py runserver 0.0.0.0:8002
+  ExecStop=ps -ef | grep python | grep manage.py | awk '{ print $2 }' | xargs kill
+  Restart=always
+  RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
