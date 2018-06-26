@@ -38,6 +38,8 @@ def test_para(request):
     return render(request, 'ec2.html', content1)
 
 
+#def gen_Content(env.table_name):
+
 def get_production_data(request):
     content1 = {}
     content1['env'] = 'production'
@@ -138,8 +140,9 @@ def get_production_data(request):
         content1['tbody'] = []
         for each_entry in cursor.fetchall():
             dict = {}
-            for each_value in each_entry:
-                dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
+            for n in xrange(len(each_entry)):
+                dict[content1['thead'][n]] = str(each_entry[n])
+                #dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
             content1['tbody'].append(dict)
 
         return render(request, 'table.html', content1)
@@ -245,8 +248,9 @@ def get_development_data(request):
         content1['tbody'] = []
         for each_entry in cursor.fetchall():
             dict = {}
-            for each_value in each_entry:
-                dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
+            for n in xrange(len(each_entry)):
+                dict[content1['thead'][n]] = str(each_entry[n])
+                #dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
             content1['tbody'].append(dict)
 
         return render(request, 'table.html', content1)
@@ -352,8 +356,9 @@ def get_legacy_data(request):
         content1['tbody'] = []
         for each_entry in cursor.fetchall():
             dict = {}
-            for each_value in each_entry:
-                dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
+            for n in xrange(len(each_entry)):
+                dict[content1['thead'][n]] = str(each_entry[n])
+                #dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
             content1['tbody'].append(dict)
 
         return render(request, 'table.html', content1)
@@ -458,8 +463,9 @@ def get_staging_data(request):
         content1['tbody'] = []
         for each_entry in cursor.fetchall():
             dict = {}
-            for each_value in each_entry:
-                dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
+            for n in xrange(len(each_entry)):
+                dict[content1['thead'][n]] = str(each_entry[n])
+                #dict[content1['thead'][each_entry.index(each_value)]] = str(each_value).encode('utf8')
             content1['tbody'].append(dict)
 
         return render(request, 'table.html', content1)
