@@ -6,6 +6,14 @@ import boto3
 import pymysql
 import datetime
 import warnings
+import json
+
+def is_json(myjson):
+  try:
+    json_object = json.loads(myjson,)
+  except (TypeError,ValueError,NameError), e:
+    return False
+  return True
 
 def ExportS3_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
 
@@ -32,7 +40,7 @@ def ExportS3_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
 
-            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Bucket_Name varchar(100), Bucket_Region VARCHAR(30), Buecket_Region_Name varchar(30), Bucket_Create_Date datetime, Bucket_Website varchar(100), Bucket_Versioning varchar(20), Bucket_MFADelete varchar(20), Buecket_Policy varchar(256), MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
+            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Bucket_Name varchar(512), Bucket_Region VARCHAR(256), Buecket_Region_Name varchar(256), Bucket_Create_Date datetime, Bucket_Website varchar(256), Bucket_Versioning varchar(256), Bucket_MFADelete varchar(256), Buecket_Policy varchar(4096), MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
             ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
 
             print("Checking and Clearing table: " + table_name)
@@ -43,7 +51,11 @@ def ExportS3_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
 
                 bucket_name = eachBucket['Name']
                 bucket_create_date = eachBucket['CreationDate']
-                bucket_region = client1.get_bucket_location(Bucket=bucket_name)['LocationConstraint']    #get region, such as ap-southeast-1
+                try:
+                    bucket_region = client1.get_bucket_location(Bucket=bucket_name)['LocationConstraint']    #get region, such as ap-southeast-1
+                except Exception as error:
+                    print(error)
+                    bucket_region = 'access_denied_or_return_null'
 
                 #print bucket_region, bool(bucket_region)
                 #Note that for buckets created in the US Standard region, us-east-1, the value of LocationConstraint will be null
@@ -79,15 +91,25 @@ def ExportS3_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
                 #print(bucket_name + "      " + bucket_website)
 
                 #print client1.get_bucket_versioning(Bucket='repo.dsci.grindr.io')
-                versioning_dict = client1.get_bucket_versioning(Bucket=bucket_name)
-                if versioning_dict.has_key('Status'):
+                try:
+                    versioning_dict = client1.get_bucket_versioning(Bucket=bucket_name)
+                except Exception as error:
+                    print(error)
+                    versioning_dict = 'access_denied_or_return_null'
+
+                if is_json(versioning_dict) and versioning_dict.has_key('Status'):
                     bucket_versioning = versioning_dict['Status']
-                else:
+                elif is_json(versioning_dict) and not versioning_dict.has_key('Status'):
                     bucket_versioning = 'Disabled'
-                if versioning_dict.has_key('MFADelete'):
-                    bucket_mfa_delete = versioning_dict['MFADelete']
                 else:
+                    bucket_versioning = 'Unknown'
+
+                if is_json(versioning_dict) and versioning_dict.has_key('MFADelete'):
+                    bucket_mfa_delete = versioning_dict['MFADelete']
+                elif is_json(versioning_dict) and not versioning_dict.has_key('MFADelete'):
                     bucket_mfa_delete = 'Disabled'
+                else:
+                    bucket_mfa_delete = 'Unknown'
                 #print bucket_name, bucket_versioning
 
                 InsertData = "INSERT INTO `" + table_name + "` (Bucket_Name, Bucket_Region, Buecket_Region_Name, Bucket_Create_Date, Bucket_Website, Bucket_Versioning, Bucket_MFADelete, Buecket_Policy, MysqlRecordTime) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);"

@@ -29,7 +29,7 @@ def ExportZone2Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
                 # print eachZone['Name'], eachZone['Id']     #得到主域名及其ZoneId
                 # table_name = aws_tag + "_Zone_" + eachZone['Name'].replace('-','_').replace('.','_')  #表名不允许有-和., 所以用_替换
                 table_name = aws_tag + "_Zone_[" + eachZone['Name'] + "]_Id_[" + eachZone['Id'].replace('/hostedzone/','') + "]"
-                CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(50), Type VARCHAR(30), Value varchar(256), TTL varchar(10), MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
+                CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(1024), Type VARCHAR(30), Value varchar(4096), TTL varchar(10), MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
                 ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
 
                 print("Checking and Clearing table: " + table_name)

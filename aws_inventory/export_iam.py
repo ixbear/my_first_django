@@ -68,12 +68,12 @@ def export_iam_users_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname):
             cursor = conn.cursor()
 
             table_name = aws_tag + '_iam_users'
-            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(50), \
-                                                                    Groupname varchar(256), \
-                                                                    Access_key_age int(5), \
-                                                                    Password_age int(100), \
-                                                                    Last_activity int(5), \
-                                                                    mfa varchar(100), \
+            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Name varchar(512), \
+                                                                    Groupname varchar(1024), \
+                                                                    Access_key_age int(255), \
+                                                                    Password_age int(255), \
+                                                                    Last_activity int(255), \
+                                                                    mfa varchar(512), \
                                                                     MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
             ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
 

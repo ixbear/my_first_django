@@ -86,7 +86,7 @@ def ExportInstance2Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname, Inst
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
 
-            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (InstanceName varchar(50), \
+            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (InstanceName varchar(256), \
                                                                         InstanceId VARCHAR(30) NOT NULL, \
                                                                         InstanceType varchar(20), \
                                                                         Hypervisor varchar(20), \
@@ -99,16 +99,18 @@ def ExportInstance2Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, dbname, Inst
                                                                         PublicIpAddress varchar(18), \
                                                                         LaunchTime datetime, \
                                                                         ImageId varchar(100), \
-                                                                        VolumeDict varchar(256), \
+                                                                        VolumeDict varchar(4096), \
                                                                         SecurityGroup varchar(256), \
                                                                         MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
             ClearTable = "TRUNCATE TABLE `" + table_name + "`"
             InsertData = "INSERT INTO `" + table_name + "` (InstanceName, InstanceId, InstanceType, Hypervisor, VirtualizationType, Status, KeyName, VpcId, SubnetId, PrivateIpAddress, PublicIpAddress, LaunchTime, ImageId, VolumeDict, SecurityGroup, MysqlRecordTime) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
 
-            print("Checking and Clearing table: " + table_name)
+            print("Checking table: " + table_name)
             cursor.execute(CheckTable)
+            print("Clearing table: " + table_name)
             cursor.execute(ClearTable)
 
+            print("Inserting table: " + table_name)
             for eachInstance in InstanceList:
                 #print type(eachInstance[0]),type(eachInstance[1]),type(eachInstance[2]),type(eachInstance[3]),type(eachInstance[4]),type(eachInstance[5]),type(eachInstance[6]),type(eachInstance[7]),type(eachInstance[8]),type(eachInstance[9]),type(eachInstance[10]),type(eachInstance[11])
                 #print eachInstance[13], type(eachInstance[13])

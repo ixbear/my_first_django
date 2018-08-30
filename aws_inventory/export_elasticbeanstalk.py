@@ -42,22 +42,22 @@ def Export_Elastic_Beanstalk_2_Mysql(aws_tag, dbhost, dbport, dbuser, dbpasswd, 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
 
-            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Application_Name varchar(50), \
-                                                                        Environment_Name VARCHAR(30), \
-                                                                        Environment_Id varchar(30), \
-                                                                        Environment_CNAME varchar(100), \
-                                                                        Environment_Health varchar(30), \
+            CheckTable = "CREATE TABLE IF NOT EXISTS `" + table_name + "` (Application_Name varchar(256), \
+                                                                        Environment_Name VARCHAR(256), \
+                                                                        Environment_Id varchar(256), \
+                                                                        Environment_CNAME varchar(256), \
+                                                                        Environment_Health varchar(256), \
                                                                         Environment_Update_Time datetime, \
                                                                         min_instances varchar(100), \
                                                                         max_instances varchar(100), \
                                                                         remove_instance_when varchar(256), \
                                                                         add_instance_when varchar(256), \
-                                                                        instance_type varchar(20), \
+                                                                        instance_type varchar(128), \
                                                                         vpc_id varchar(100), \
                                                                         subnets varchar(256), \
                                                                         image_id varchar(256), \
-                                                                        Related_Instances_Count int(2), \
-                                                                        Related_Instances varchar(256), \
+                                                                        Related_Instances_Count int(16), \
+                                                                        Related_Instances varchar(4096), \
                                                                         MysqlRecordTime datetime) CHARSET=utf8 COLLATE=utf8_general_ci;"
             ClearTable = "TRUNCATE TABLE `" + table_name + "`;"
 
